@@ -18,16 +18,15 @@ function runParallel(jobs, parallelNum, timeout = 1000) {
 
         let counter = 0;
         let results = [];
-        jobs
-            .slice(0, parallelNum)
-            .forEach(job => pushProcess(job, counter));
 
         function pushProcess(job, i) {
             counter++;
+            let directing = result => pushResult(result, i);
             Promise.race([
                 job(),
                 new Promise(reject => setTimeout(reject, timeout, new Error('Promise timeout')))])
-                .then(result => pushResult(result, i), result => pushResult(result, i));
+                .then(directing)
+                .catch(directing);
         }
 
         function pushResult(result, i) {
@@ -40,5 +39,9 @@ function runParallel(jobs, parallelNum, timeout = 1000) {
                 pushProcess(jobs[counter], counter);
             }
         }
+
+        jobs
+            .slice(0, parallelNum)
+            .forEach(job => pushProcess(job, counter));
     });
 }

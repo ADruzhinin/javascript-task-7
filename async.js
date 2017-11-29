@@ -13,14 +13,13 @@ exports.runParallel = runParallel;
 function runParallel(jobs, parallelNum, timeout = 1000) {
     return new Promise(resolve => {
         if (!jobs.length || parallelNum <= 0) {
-            Promise.resolve([]);
+            resolve([]);
         }
 
         let counter = 0;
         let results = [];
 
         function pushProcess(job, i) {
-            counter++;
             let directing = result => pushResult(result, i);
             Promise.race([
                 job(),
@@ -35,12 +34,12 @@ function runParallel(jobs, parallelNum, timeout = 1000) {
                 resolve(results);
             }
             if (counter < jobs.length) {
-                pushProcess(jobs[counter], counter);
+                pushProcess(jobs[counter], counter++);
             }
         }
 
         jobs
             .slice(0, parallelNum)
-            .forEach(job => pushProcess(job, counter));
+            .forEach(job => pushProcess(job, counter++));
     });
 }
